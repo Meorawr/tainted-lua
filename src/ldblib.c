@@ -298,18 +298,27 @@ static int db_gethook (lua_State *L) {
 
 
 static int db_debug (lua_State *L) {
+  char buffer[LUA_MAXINPUT];
+
   for (;;) {
-    char buffer[250];
-    fputs("lua_debug> ", stderr);
-    if (fgets(buffer, sizeof(buffer), stdin) == 0 ||
-        strcmp(buffer, "cont\n") == 0)
-      return 0;
-    if (luaL_loadbuffer(L, buffer, strlen(buffer), "=(debug command)") ||
-        lua_pcall(L, 0, 0, 0)) {
-      fputs(lua_tostring(L, -1), stderr);
-      fputs("\n", stderr);
+    char *b = buffer;
+    size_t l;
+    int readstatus = lua_readline(L, b, "lua_debug> ");
+    if (readstatus == 0)
+      return 0;  /* no input */
+    l = strlen(b);
+    if (l > 0 && b[l-1] == '\n')  /* line ends with newline? */
+      b[--l] = '\0';  /* remove it */
+    if (strcmp(b, "cont") == 0)
+      return 0;  /* explicit break */
+    if (luaL_loadbuffer(L, b, strlen(b), "=(debug command)") || lua_pcall(L, 0, 0, 0)) {
+      fprintf(stderr, "%s\n", lua_tostring(L, -1));
+      fflush(stderr);
     }
     lua_settop(L, 0);  /* remove eventual returns */
+    if (b[0] != '\0')  /* non empty? */
+      lua_savelineraw(L, b);  /* keep history */
+    lua_freeline(L, b);
   }
 }
 

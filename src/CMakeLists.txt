@@ -53,6 +53,7 @@ target_link_libraries(
   PRIVATE
     $<$<PLATFORM_ID:Darwin,Linux>:dl>
     $<$<PLATFORM_ID:Darwin,Linux>:m>
+    $<$<PLATFORM_ID:Darwin,Linux>:readline>
     $<$<BOOL:${TL_HAS_BCRYPT_GEN_RANDOM}>:bcrypt>
     sheredom::utf8h
 )

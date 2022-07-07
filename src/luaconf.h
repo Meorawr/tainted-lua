@@ -231,7 +231,7 @@
 ** ===================================================================
 */
 
-#if defined(lua_c) || defined(luaall_c)
+#if defined(lua_c) || defined(luaall_c) || defined(ldblib_c)
 
 /*
 @@ lua_stdin_is_tty detects whether the standard input is a 'tty' (that
@@ -293,12 +293,14 @@
 #define lua_saveline(L,idx) \
 	if (lua_strlen(L,idx) > 0)  /* non-empty line? */ \
 	  add_history(lua_tostring(L, idx));  /* add it to history */
+#define lua_savelineraw(L,b) ((void)L, add_history(b))
 #define lua_freeline(L,b)	((void)L, free(b))
 #else
 #define lua_readline(L,b,p)	\
 	((void)L, fputs(p, stdout), fflush(stdout),  /* show prompt */ \
 	fgets(b, LUA_MAXINPUT, stdin) != NULL)  /* get line */
 #define lua_saveline(L,idx)	{ (void)L; (void)idx; }
+#define lua_savelineraw(L,b)	{ (void)L; (void)b; }
 #define lua_freeline(L,b)	{ (void)L; (void)b; }
 #endif
 
